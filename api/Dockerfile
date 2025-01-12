@@ -11,6 +11,9 @@ RUN cargo build --release
 
 COPY . .
 
+# Update the main.rs file modification date
+RUN touch src/main.rs
+
 RUN cargo build --release
 
 EXPOSE 3001
