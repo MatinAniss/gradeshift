@@ -17,6 +17,8 @@ services:
     restart: unless-stopped
     expose:
       - 5432
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -29,6 +31,8 @@ services:
     build: ./website
     ports:
       - "3000:3000"
+    environment:
+      PUBLIC_REST_API_BASE_URL: ${PUBLIC_REST_API_BASE_URL}
 
 volumes:
   pgdata:
