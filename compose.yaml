@@ -32,7 +32,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      PUBLIC_REST_API_BASE_URL: ${PUBLIC_REST_API_BASE_URL}
+      NEXT_PUBLIC_REST_API_BASE_URL: ${NEXT_PUBLIC_REST_API_BASE_URL}
 
 volumes:
   pgdata:
