@@ -3,13 +3,13 @@ use axum::{
     extract::{Request, State},
     http::{self, StatusCode},
     middleware::Next,
-    response::{IntoResponse, Response},
-    Json,
+    response::Response,
 };
-use serde::Serialize;
 use uuid::Uuid;
 
 use crate::AppState;
+
+use super::HttpError;
 
 #[derive(Clone)]
 pub struct Session {
@@ -28,44 +28,21 @@ pub struct User {
     pub id: Uuid,
 }
 
-pub struct MiddlewareError {
-    status_code: StatusCode,
-    message: String,
-}
-
-impl IntoResponse for MiddlewareError {
-    fn into_response(self) -> Response {
-        #[derive(Serialize)]
-        #[serde(rename_all = "camelCase")]
-        struct MiddlewareErrorResponse<'a> {
-            status_code: u16,
-            message: &'a str,
-        }
-
-        let response = MiddlewareErrorResponse {
-            status_code: self.status_code.as_u16(),
-            message: &self.message,
-        };
-
-        (self.status_code, Json(response)).into_response()
-    }
-}
-
 pub async fn auth_middleware(
     State(state): State<AppState>,
     mut req: Request,
     next: Next,
-) -> Result<Response<Body>, MiddlewareError> {
+) -> Result<Response<Body>, HttpError> {
     let auth_header = match req.headers().get(http::header::AUTHORIZATION) {
-        Some(header) => header.to_str().map_err(|_| MiddlewareError {
+        Some(header) => header.to_str().map_err(|_| HttpError {
             status_code: StatusCode::UNAUTHORIZED,
             message: "Missing authorization token".to_string(),
         })?,
         None => {
-            return Err(MiddlewareError {
+            return Err(HttpError {
                 status_code: StatusCode::UNAUTHORIZED,
                 message: "Missing authorization header".to_string(),
-            })
+            });
         }
     };
 
@@ -84,13 +61,13 @@ pub async fn auth_middleware(
     .bind(&token)
     .fetch_one(&state.db)
     .await
-    .map_err(|_| MiddlewareError {
+    .map_err(|_| HttpError {
         status_code: StatusCode::UNAUTHORIZED,
         message: "Authorization token is invalid".to_string(),
     })?;
 
     if expires_at < chrono::Utc::now() || !is_active {
-        Err(MiddlewareError {
+        Err(HttpError {
             status_code: StatusCode::UNAUTHORIZED,
             message: "Authorization token is expired".to_string(),
         })

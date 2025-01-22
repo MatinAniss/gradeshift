@@ -1,5 +1,4 @@
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import NotFoundHome from "./not-found-home";
 
 export default function NotFound() {
   return (
@@ -8,9 +7,7 @@ export default function NotFound() {
         <span className="text-6xl">404</span>
         <span className="text-2xl">Page Not Found</span>
       </div>
-      <Link href="/">
-        <Button>Go back Home</Button>
-      </Link>
+      <NotFoundHome />
     </div>
   );
 }

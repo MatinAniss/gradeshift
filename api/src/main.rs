@@ -1,12 +1,16 @@
 use std::{env, sync::Arc, time::Duration};
 
 use axum::{
-    http::{header, Method},
-    routing::get,
     Router,
+    http::{Method, header},
+    middleware,
+    routing::get,
 };
-use http::rest::auth;
-use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
+use http::{
+    middleware::auth_middleware,
+    rest::{auth, organisations, subjects},
+};
+use sqlx::{Pool, Postgres, postgres::PgPoolOptions};
 use tokio::net::TcpListener;
 use tower_http::cors::{AllowHeaders, AllowMethods, AllowOrigin, CorsLayer, MaxAge};
 
@@ -44,6 +48,20 @@ async fn main() {
     let app = Router::new()
         .route("/", get(root))
         .nest("/auth", auth::routes(state.clone()))
+        .nest(
+            "/organisations",
+            organisations::routes().layer(middleware::from_fn_with_state(
+                state.clone(),
+                auth_middleware,
+            )),
+        )
+        .nest(
+            "/subjects",
+            subjects::routes().layer(middleware::from_fn_with_state(
+                state.clone(),
+                auth_middleware,
+            )),
+        )
         .layer(cors_layer())
         .with_state(state);
 
