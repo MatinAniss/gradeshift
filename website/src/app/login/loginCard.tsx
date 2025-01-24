@@ -18,7 +18,7 @@ export default function LoginCard() {
       const res = await login({ email, password });
       setToken({ token: res.token.token, createdAt: new Date(res.token.createdAt), expiresAt: new Date(res.token.expiresAt) });
       setUser(res.user);
-      router.push("/");
+      router.push("/home");
 
       return res;
     }
